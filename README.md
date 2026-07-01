@@ -180,8 +180,8 @@ uv run fastapi dev main.py
 | 項目 | 値 |
 |---|---|
 | **Environment** | Python 3 |
-| **Build Command** | `pip install uv && uv sync` |
-| **Start Command** | `uv run fastapi run main.py --host 0.0.0.0 --port $PORT` |
+| **Build Command** | `uv sync --frozen` |
+| **Start Command** | `uv run fastapi run main.py` |
 | **Health Check Path** | `/docs`（任意） |
 
 ### 環境変数
