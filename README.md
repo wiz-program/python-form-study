@@ -1,36 +1,28 @@
-# python-form
+# python-form-study
+
+## 概要
 
 [react-form-study](https://github.com/wiz-program/react-form-study) のバックエンド API です。
 
 React Hook Form + Zod で実装したフロントエンドフォームから送信された応募データを受け取り、Neon（PostgreSQL）に保存します。
 
----
+| 項目 | URL |
+|---|---|
+| フロントエンド（React） | https://github.com/wiz-program/react-form-study |
+| バックエンド（このリポジトリ） | https://github.com/wiz-program/python-form-study |
+| デプロイ先（Render） | https://python-form-study.onrender.com |
+| フロントエンド（GitHub Pages） | https://wiz-program.github.io/react-form-study/ |
 
-## 概要
+フロントエンドのフォーム UI・クライアントバリデーション・確認画面・応募完了画面の実装は [react-form-study](https://github.com/wiz-program/react-form-study) を参照してください。  
+このリポジトリは Render にデプロイされ、GitHub Pages 上のフロントエンドから API リクエストを受け付けます。
 
-実務でよくある「入力 → 確認 → API 送信」フローのうち、**API 送信〜データベース保存**を担う部分の学習コードです。
+実務でよくある「入力 → 確認 → API 送信 → 応募完了」フローのうち、**API 受付〜データベース保存**を担う部分の学習コードです。
 
 フロントエンドの Zod スキーマと対応するバリデーションを Pydantic で実装し、同じ入力ルールをサーバー側でも担保しています。
 
-| レイヤー | リポジトリ | 役割 |
-|---|---|---|
-| フロントエンド | [react-form-study](https://github.com/wiz-program/react-form-study) | フォーム UI・クライアントバリデーション・確認画面 |
-| バックエンド | このリポジトリ | API 受付・サーバーバリデーション・DB 保存 |
-
 ---
 
-## 技術スタック
-
-- Python 3.12+
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [Pydantic](https://docs.pydantic.dev/)（`EmailStr` によるメール形式チェック）
-- [asyncpg](https://magicstack.github.io/asyncpg/)（PostgreSQL 非同期ドライバ）
-- [uv](https://docs.astral.sh/uv/)（パッケージ管理）
-- Neon（PostgreSQL）
-
----
-
-## プロジェクト構成
+## 構成ファイル
 
 ```
 python-form/
@@ -40,15 +32,46 @@ python-form/
 └── .env             # 環境変数（ローカル開発用・Git 管理外）
 ```
 
+### main.py の役割
+
+- FastAPI アプリの定義と CORS 設定
+- Pydantic によるリクエストバリデーション（`RegisterQuestionnaireRequest`）
+- `POST /api/v1/register-questionnaire` エンドポイントの実装
+- asyncpg による Neon（PostgreSQL）へのデータ保存
+- 成功時に `status` と `message` を返却（フロントの応募完了画面で表示）
+
 ---
 
-## API 仕様
+## API 連携
 
-### `POST /api/v1/register-questionnaire`
+フロントエンドの `ConfirmForm.tsx` から、以下のエンドポイントへ `POST` リクエストが送信されます。
+
+```
+https://python-form-study.onrender.com/api/v1/register-questionnaire
+```
+
+ローカル開発時は、フロントエンド側のリクエスト先を以下に変更してください。
+
+```
+http://localhost:8000/api/v1/register-questionnaire
+```
+
+### フロントエンド（別リポジトリ）
+
+| レイヤー | リポジトリ | 役割 |
+|---|---|---|
+| フロントエンド | [react-form-study](https://github.com/wiz-program/react-form-study) | フォーム UI・クライアントバリデーション・確認画面・API 送信・応募完了画面 |
+| バックエンド | このリポジトリ | API 受付・サーバーバリデーション・DB 保存 |
+
+フロントエンドの画面構成・設計方針などの詳細は [react-form-study の README](https://github.com/wiz-program/react-form-study) を参照してください。
+
+### バックエンド（このリポジトリ）
+
+#### `POST /api/v1/register-questionnaire`
 
 応募フォームのデータを受け取り、`questionnaires` テーブルに保存します。
 
-#### リクエストボディ
+**リクエストボディ**
 
 ```json
 {
@@ -70,7 +93,7 @@ python-form/
 
 > フロントエンドの Zod スキーマ（`UseFormContext.tsx`）と同じルールです。
 
-#### レスポンス（成功時）
+**レスポンス（成功時）**
 
 ```json
 {
@@ -79,7 +102,9 @@ python-form/
 }
 ```
 
-#### Swagger UI
+フロントエンドの応募完了画面（`CompleteForm.tsx`）では、この `message` を表示します。
+
+**Swagger UI**
 
 ローカル起動後、以下で API ドキュメントを確認できます。
 
@@ -110,8 +135,8 @@ CREATE TABLE questionnaires (
 ### 1. リポジトリのクローン
 
 ```bash
-git clone <このリポジトリの URL>
-cd python-form
+git clone https://github.com/wiz-program/python-form-study.git
+cd python-form-study
 ```
 
 ### 2. 依存関係のインストール
@@ -143,18 +168,6 @@ uv run fastapi dev main.py
 
 ---
 
-## フロントエンドとの接続
-
-ローカル開発時は、フロントエンドの axios リクエスト先を以下に変更します。
-
-```
-http://localhost:8000/api/v1/register-questionnaire
-```
-
-CORS は開発用に `allow_origins=["*"]` を設定しています。本番デプロイ時はフロントエンドのドメインに絞ることを推奨します。
-
----
-
 ## Render へのデプロイ
 
 ### 事前準備
@@ -181,22 +194,29 @@ Render のダッシュボードで以下を設定します。
 
 ### デプロイ後
 
-- API ベース URL: `https://<your-service>.onrender.com`
-- エンドポイント: `https://<your-service>.onrender.com/api/v1/register-questionnaire`
+- API ベース URL: https://python-form-study.onrender.com
+- エンドポイント: https://python-form-study.onrender.com/api/v1/register-questionnaire
 
-フロントエンド側の API URL をデプロイ先に合わせて更新してください。
+CORS は開発用に `allow_origins=["*"]` を設定しています。本番ではフロントエンドのドメイン（`https://wiz-program.github.io`）に絞ることを推奨します。
 
 ---
 
 ## 設計方針
 
-- **バリデーションの二重化**: フロント（Zod）とバックエンド（Pydantic）で同じルールを適用
-- **SQL インジェクション対策**: asyncpg のプレースホルダー（`$1`, `$2`...）を使用
-- **接続管理**: `try` / `finally` で DB 接続を必ずクローズ
-- **責務の分離**: リクエストモデル（`RegisterQuestionnaireRequest`）とルートハンドラを `main.py` に集約（学習段階のためシンプルな構成）
+- バリデーションは Pydantic モデルに集約し、フロントエンドの Zod スキーマと同じルールを適用する
+- SQL インジェクション対策として asyncpg のプレースホルダー（`$1`, `$2`...）を使用する
+- DB 接続は `try` / `finally` で必ずクローズする
+- 成功レスポンスの `message` をフロントの応募完了画面でそのまま表示できる形式にする
+- 学習段階のため、リクエストモデルとルートハンドラは `main.py` に集約したシンプルな構成とする
 
 ---
 
-## 関連リポジトリ
+## 使用技術
 
-- フロントエンド: [wiz-program/react-form-study](https://github.com/wiz-program/react-form-study)
+- Python 3.12+
+- FastAPI
+- Pydantic（`EmailStr` によるメール形式チェック）
+- asyncpg（PostgreSQL 非同期ドライバ）
+- uv（パッケージ管理）
+- Neon（PostgreSQL）
+- Render（デプロイ）
