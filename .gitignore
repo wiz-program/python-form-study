@@ -1,0 +1,18 @@
+# 仮想環境（容量が巨大なため除外）
+.venv/
+
+# 環境変数・パスワード情報（セキュリティのため【絶対】に除外）
+.env
+
+# Pythonのキャッシュファイル（自動生成される不要ファイル）
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS固有のゴミファイル（Mac/Windowsが勝手に作るもの）
+.DS_Store
+Thumbs.db
